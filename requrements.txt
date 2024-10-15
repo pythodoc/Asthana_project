@@ -1,0 +1,5 @@
+streamlit
+pandas
+google_trans_new
+gspread
+oauth2client
