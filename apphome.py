@@ -17,8 +17,8 @@ st.sidebar.image(sidebar_logo_path, width=200)  # Adjust width as needed
 
 
 # Sidebar for language selection
-languages = {'Marathi': 'mr', 'Hindi': 'hi', 'English': 'en'}
-selected_lang = st.sidebar.selectbox("Select Language", list(languages.keys()))
+lang_tgt= = {'Marathi': 'mr', 'Hindi': 'hi', 'English': 'en'}
+selected_lang = st.sidebar.selectbox("Select Language", list(lang_tgt=.keys()))
 
 # Define translations for navigation items
 nav_translations = {
@@ -37,7 +37,7 @@ nav_translations = {
 }
 
 # Translate navigation items based on the selected language
-translated_nav = {item: nav_translations[item].get(languages[selected_lang], item) for item in nav_translations.keys()}
+translated_nav = {item: nav_translations[item].get(lang_tgt=[selected_lang], item) for item in nav_translations.keys()}
 
 # Add the navigation items to the sidebar
 page = st.sidebar.radio("Navigate", list(translated_nav.values()))
@@ -215,8 +215,8 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     st.title("ओम शिव गोरक्ष योगी अस्थाना. (आटगांव)")
     st.map(data)
 
-    #translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
+    #translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
     #st.header(translated_header)
     st.write(translated_content)
 elif page in ["Contact", "संपर्क"]:
@@ -224,8 +224,8 @@ elif page in ["Contact", "संपर्क"]:
     content = """
         You can provide contact details or a form for visitors to get in touch with you.
     """
-    translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
+    translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
     st.header(translated_header)
     st.write(translated_content)
     df=pd.read_csv("all_data.csv")   
@@ -235,8 +235,8 @@ elif page in ["Documentation", "दस्तावेज़","दस्ताव
     content = """
         Here, you can provide detailed documentation on how to use the site or service.
     """
-    translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
+    translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
     st.header(translated_header)
     st.write(translated_content)
 elif page in ["Media Coverage", "मीडिया कव्हरेज", "मीडिया कव्हरेज"]:
@@ -245,8 +245,8 @@ elif page in ["Media Coverage", "मीडिया कव्हरेज", "म
         this is sample
     """
     st_player("https://www.youtube.com/playlist?list=PL6uoWbCpalBCr5BMGH-GmAqxuLdq_lkYr&si=AqvcauntO-igSXTW")
-    translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
+    translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
     st.header(translated_header)
     st.write(translated_content)
 elif page in ["Nath Sampraday", "नाथ समुदाय", "नाथ संप्रदाय"]:
@@ -273,8 +273,8 @@ As there are twelve Panth as follows in above image
     # Display the image using st.markdown
     st.markdown(f'<img src="{image_url}" alt="Image" style="width:100%;"/>', unsafe_allow_html=True)
     #st.markdown(r'C:\Users\Admin\Desktop\Asthana Proj\all_panth1.jpg')
-    translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
+    translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
     st.header(translated_header)
     st.write(translated_content)
 elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
@@ -291,38 +291,38 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
     """
     
     # Translated title
-    translated_title = translate_text(title, languages[selected_lang])
+    translated_title = translate_text(title, lang_tgt=[selected_lang])
     st.title(translated_title)
 
     # Registration form fields
-    name = st.text_input(translate_text("Your's Name", languages[selected_lang]))
-    email = st.text_input(translate_text("E-Mail", languages[selected_lang]))
-    phone = st.text_input(translate_text("Contact Num", languages[selected_lang]))
-    address = st.text_area(translate_text("Address", languages[selected_lang]))
+    name = st.text_input(translate_text("Your's Name", lang_tgt=[selected_lang]))
+    email = st.text_input(translate_text("E-Mail", lang_tgt=[selected_lang]))
+    phone = st.text_input(translate_text("Contact Num", lang_tgt=[selected_lang]))
+    address = st.text_area(translate_text("Address", lang_tgt=[selected_lang]))
 
     # Gender selection
-    gender = st.radio(translate_text("Gender", languages[selected_lang]), ("पुरुष", "स्त्री"), horizontal=True)
+    gender = st.radio(translate_text("Gender", lang_tgt=[selected_lang]), ("पुरुष", "स्त्री"), horizontal=True)
 
     # Age input
-    age = st.number_input(translate_text("Age", languages[selected_lang]), min_value=18, max_value=100)
+    age = st.number_input(translate_text("Age", lang_tgt=[selected_lang]), min_value=18, max_value=100)
 
     # Terms and conditions checkbox
-    agree = st.checkbox(translate_text("I agree to the Terms and Conditions.", languages[selected_lang]))
+    agree = st.checkbox(translate_text("I agree to the Terms and Conditions.", lang_tgt=[selected_lang]))
     
     file_path = "registration_data.csv"
     
     # Validation and submission
     if st.button("Submit"):
         if not name:
-            st.error(translate_text("Please enter your name.", languages[selected_lang]))
+            st.error(translate_text("Please enter your name.", lang_tgt=[selected_lang]))
         elif not email:
-            st.error(translate_text("Please enter your E-Mail.", languages[selected_lang]))
+            st.error(translate_text("Please enter your E-Mail.", lang_tgt=[selected_lang]))
         elif not phone:
-            st.error(translate_text("Please enter your contact number.", languages[selected_lang]))
+            st.error(translate_text("Please enter your contact number.", lang_tgt=[selected_lang]))
         elif not address:
-            st.error(translate_text("Please enter your address.", languages[selected_lang]))
+            st.error(translate_text("Please enter your address.", lang_tgt=[selected_lang]))
         elif not agree:
-            st.error(translate_text("For registration, please accept the terms and conditions.", languages[selected_lang]))
+            st.error(translate_text("For registration, please accept the terms and conditions.", lang_tgt=[selected_lang]))
         else:
             st.success(f"Thank you, {name}! Your form has been submitted successfully.")
 
@@ -332,34 +332,34 @@ elif page == "संसाधन" or page=="Resources":  # Use the translated "R
         header = "Resources - Videos"
         content = "Content for videos"
         # Translate the header and content
-        translated_header = translate_text(header, languages[selected_lang])
-        translated_content = translate_text(content, languages[selected_lang])
+        translated_header = translate_text(header, lang_tgt=[selected_lang])
+        translated_content = translate_text(content, lang_tgt=[selected_lang])
         st.header(translated_header)
         st.write(translated_content)
     elif resource_selection == "Articles":
         header = "Resources - Articles"
         content = "Content for articles"
         # Translate the header and content
-        translated_header = translate_text(header, languages[selected_lang])
-        translated_content = translate_text(content, languages[selected_lang])
+        translated_header = translate_text(header, lang_tgt=[selected_lang])
+        translated_content = translate_text(content, lang_tgt=[selected_lang])
         st.header(translated_header)
         st.write(translated_content)
     elif resource_selection == "Books":
         header = "Resources - Books"
         content = "Content for books"
         # Translate the header and content
-        translated_header = translate_text(header, languages[selected_lang])
-        translated_content = translate_text(content, languages[selected_lang])
-        translated_resource=translate_text(resource_selection,languages[selected_lang])
+        translated_header = translate_text(header, lang_tgt=[selected_lang])
+        translated_content = translate_text(content, lang_tgt=[selected_lang])
+        translated_resource=translate_text(resource_selection,lang_tgt=[selected_lang])
         st.header(translated_header)
         st.write(translated_content)
         st.write(translated_resource)
 else:
     header = "Page Not Found"
     content = "The page you are looking for does not exist."
-    translated_header = translate_text(header, languages[selected_lang])
-    translated_content = translate_text(content, languages[selected_lang])
-    #translated_resource=translate_text(resource_selection,languages[selected_lang]+
+    translated_header = translate_text(header, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt=[selected_lang])
+    #translated_resource=translate_text(resource_selection,lang_tgt=[selected_lang]+
     st.header(translated_header)
     st.write(translated_content)
         #st.write(translated_resource)
