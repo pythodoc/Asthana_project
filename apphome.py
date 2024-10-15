@@ -48,7 +48,7 @@ page = st.sidebar.radio("Navigate", list(translated_nav.values()))
 def translate_text(text, lang):
     try:
         translated = translator.translate(text, lang)
-        return translated.text
+        return translated
     except Exception as e:
         st.error(f"Translation failed: {e}")
         return text
