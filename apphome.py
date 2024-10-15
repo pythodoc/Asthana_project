@@ -1,11 +1,11 @@
 import streamlit as st
-from googletrans import Translator
+from mtranslate import translate
 import pandas as pd
 from streamlit_player import st_player
 import streamlit.components.v1 as components
 
 # Initialize the Translator
-translator = Translator()
+translator = translate()
 
 # Define paths for logos
 main_logo_path = "logo.jpg"  # Replace with your main logo's path
