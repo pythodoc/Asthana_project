@@ -18,7 +18,8 @@ st.sidebar.image(sidebar_logo_path, width=200)  # Adjust width as needed
 
 # Sidebar for language selection
 lang_tgt= {'Marathi': 'mr', 'Hindi': 'hi', 'English': 'en'}
-selected_lang = st.sidebar.selectbox("Select Language", list(lang_tgt=.keys()))
+selected_lang = st.sidebar.selectbox("Select Language", list(lang_tgt.keys()))
+
 
 # Define translations for navigation items
 nav_translations = {
