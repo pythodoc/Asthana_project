@@ -38,7 +38,8 @@ nav_translations = {
 }
 
 # Translate navigation items based on the selected language
-translated_nav = {item: nav_translations[item].get(lang_tgt=[selected_lang], item) for item in nav_translations.keys()}
+translated_nav = {item: nav_translations[item].get(lang_tgt[selected_lang], item) for item in nav_translations.keys()}
+
 
 # Add the navigation items to the sidebar
 page = st.sidebar.radio("Navigate", list(translated_nav.values()))
