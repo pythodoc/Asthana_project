@@ -218,7 +218,7 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     st.map(data)
 
     #translated_header = translate_text(header, lang_tgt=[selected_lang])
-    translated_content = translate_text(content, lang_tgt=[selected_lang])
+    translated_content = translate_text(content, lang_tgt[selected_lang])
     #st.header(translated_header)
     st.write(translated_content)
 elif page in ["Contact", "संपर्क"]:
