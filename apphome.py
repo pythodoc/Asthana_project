@@ -252,7 +252,7 @@ elif page in ["Media Coverage", "मीडिया कव्हरेज", "म
     st.header(translated_header)
     st.write(translated_content)
 elif page in ["Nath Sampraday", "नाथ समुदाय", "नाथ संप्रदाय"]:
-    st.image(r'C:\Users\Admin\Desktop\Asthana Proj\Shiv Gorakshanath.jpeg')
+    st.image(r'Shiv Gorakshanath.jpeg')
 
 
     header = "Nath Panth"
