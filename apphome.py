@@ -6,6 +6,10 @@ import streamlit.components.v1 as components
 
 lang_tgt= {'Marathi': 'mr', 'Hindi': 'hi', 'English': 'en'}
 
+# Sidebar for language selection
+
+selected_lang = st.sidebar.selectbox("Select Language", list(lang_tgt.keys()))
+
 # Initialize the Translator
 translator = Translator(to_lang=lang_tgt[selected_lang])
 
@@ -15,12 +19,6 @@ sidebar_logo_path = "logo.jpg"  # Replace with your sidebar logo's path
 
 # Sidebar logo
 st.sidebar.image(sidebar_logo_path, width=200)  # Adjust width as needed
-
-
-
-# Sidebar for language selection
-
-selected_lang = st.sidebar.selectbox("Select Language", list(lang_tgt.keys()))
 
 
 # Define translations for navigation items
