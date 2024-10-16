@@ -1,3 +1,4 @@
+googletrans
 streamlit
 pandas
 google_trans_new
