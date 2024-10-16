@@ -134,7 +134,7 @@ function showSlides() {
 
     # Display the image in the left column
     with col1:
-        st.image('shri guruji.png', use_column_width=True)
+        st.image('shri guruji.PNG', use_column_width=True)
 
     # Display the details in the right column
     with col2:
@@ -184,7 +184,7 @@ function showSlides() {
         """)
 
     with col4:
-        st.image('dadaguru.png', use_column_width=True)
+        st.image('dadaguru.PNG', use_column_width=True)
 # Handle dropdown selection separately
 elif page == "Resources":
     resource_selection = st.selectbox("Select a resource", ["Videos", "Articles", "Books"])
