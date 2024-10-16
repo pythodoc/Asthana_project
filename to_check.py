@@ -9,7 +9,7 @@ status = 'light rain'
 st.write(status)  # Display the original text
 
 # Translate the text from English to Marathi (mr)
-translated = translator.translate(status, src='en', dest='mr-IN')
+translated = translator.translate(status, src='en', dest='hi')
 
 # Display the translated text
 st.write(translated.text)
