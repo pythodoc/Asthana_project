@@ -4,12 +4,17 @@ from translate import Translator
 # Initialize the translator with the target language (Marathi)
 translator = Translator(to_lang='mr')
 
-# Text to be translated
-status = 'light rain'
-st.write(status)  # Display the original text
+# Paragraph to be translated
+paragraph = '''
+The rain was light and steady, falling gently on the rooftops and trees. 
+People walked through the streets with umbrellas, while children splashed 
+in puddles, enjoying the cool breeze.
+'''
 
-# Translate the text
-translate_text = translator.translate(status)
+st.write(paragraph)  # Display the original paragraph
 
-# Display the translated text
-st.write(translate_text)
+# Translate the paragraph
+translated_paragraph = translator.translate(paragraph)
+
+# Display the translated paragraph
+st.write(translated_paragraph))
