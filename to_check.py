@@ -1,3 +1,4 @@
+import streamlit as st
 from google_trans_new import google_translator
 
 translator = google_translator()
