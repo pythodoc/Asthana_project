@@ -17,4 +17,4 @@ st.write(paragraph)  # Display the original paragraph
 translated_paragraph = translator.translate(paragraph)
 
 # Display the translated paragraph
-st.write(translated_paragraph))
+st.write(translated_paragraph)
