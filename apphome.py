@@ -7,7 +7,7 @@ import streamlit.components.v1 as components
 lang_tgt= {'Marathi': 'mr', 'Hindi': 'hi', 'English': 'en'}
 
 # Initialize the Translator
-translator = Translator(to_lang=lang_tgt[selected_language])
+translator = Translator(to_lang=lang_tgt[selected_lang])
 
 # Define paths for logos
 main_logo_path = "logo.jpg"  # Replace with your main logo's path
