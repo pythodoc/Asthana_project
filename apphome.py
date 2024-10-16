@@ -217,17 +217,17 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     st.title("ॐ शिव गोरक्ष योगी अस्थाना. (आटगांव)")
     st.map(data)
 
-    #translated_header = translate(header, lang_tgt=[selected_lang])
+    #translated_header = translate(header, lang_tgt[selected_lang])
     translated_content = translate(content, lang_tgt[selected_lang])
     #st.header(translated_header)
     st.write(translated_content)
 elif page in ["Contact", "संपर्क"]:
     header = "Contact Us"
     content = """
-        You can provide contact details or a form for visitors to get in touch with you.
+        All Guru bandhu's are for your help please find our shisya mandal as per District wise in address section
     """
-    translated_header = translate_text(header, lang_tgt=[selected_lang])
-    translated_content = translate_text(content, lang_tgt=[selected_lang])
+    translated_header = translate_text(header, lang_tgt[selected_lang])
+    translated_content = translate_text(content, lang_tgt[selected_lang])
     st.header(translated_header)
     st.write(translated_content)
     df=pd.read_csv("all_data.csv")   
