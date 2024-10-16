@@ -5,3 +5,4 @@ google_trans_new
 gspread
 oauth2client
 streamlit_player
+translate
