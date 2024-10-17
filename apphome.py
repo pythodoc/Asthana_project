@@ -217,7 +217,7 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     st.title("ॐ शिव गोरक्ष योगी अस्थाना. (आटगांव)")
     st.map(data)
 
-    #translated_header = translate_text(header, lang_tgt[selected_lang])
+    #translated_header = translate_text(header)
     translated_content = translate_text(content)
     #st.header(translated_header)
     st.write(translated_content)
