@@ -1,20 +1,41 @@
 import streamlit as st
-from translate import Translator
+from libretranslatepy import LibreTranslateAPI
 
-# Initialize the translator with the target language (Marathi)
-translator = Translator(to_lang='mr')
+# Initialize the translator
+translator = LibreTranslateAPI()
 
-# Paragraph to be translated
-paragraph = '''
-The rain was light and steady, falling gently on the rooftops and trees. 
-People walked through the streets with umbrellas, while children splashed 
-in puddles, enjoying the cool breeze.
-'''
+# Define the function to translate text
+def translate_text(text, target_lang):
+    try:
+        translated = translator.translate(text, target_lang)
+        return translated
+    except Exception as e:
+        return f"Translation failed: {e}"
 
-st.write(paragraph)  # Display the original paragraph
+# Streamlit app layout
+st.title("LibreTranslate Translation App")
 
-# Translate the paragraph
-translated_paragraph = translator.translate(paragraph)
+# Input field for text to translate
+text_to_translate = st.text_area("Enter text to translate", "")
 
-# Display the translated paragraph
-st.write(translated_paragraph)
+# Language selection dropdown
+target_lang = st.selectbox(
+    "Select target language",
+    [
+        ("Hindi", "hi"),
+        ("Spanish", "es"),
+        ("French", "fr"),
+        ("German", "de"),
+        ("Chinese", "zh"),
+        ("Arabic", "ar"),
+    ],
+    format_func=lambda lang: lang[0],  # Display only language names
+)
+
+# Button to perform translation
+if st.button("Translate"):
+    if text_to_translate.strip():
+        translated_text = translate_text(text_to_translate, target_lang[1])
+        st.success(f"Translated Text: {translated_text}")
+    else:
+        st.error("Please enter text to translate.")
