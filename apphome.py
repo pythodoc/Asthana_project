@@ -45,7 +45,7 @@ translated_nav = {item: nav_translations[item].get(lang_tgt[selected_lang], item
 page = st.sidebar.radio("Navigate", list(translated_nav.values()))
 
 # Function to translate text
-def translate_text(text, lang):
+def translate_text(text):
     try:
         translated = translator.translate(text, lang)
         return translated
