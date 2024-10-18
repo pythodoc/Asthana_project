@@ -1,5 +1,5 @@
 import streamlit as st
-from libretranslatepy import LibreTranslateAPI
+from libretranslate import LibreTranslateAPI
 
 # Initialize the translator
 translator = LibreTranslateAPI()
