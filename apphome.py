@@ -327,7 +327,7 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
         else:
             st.success(f"Thank you, {name}! Your form has been submitted successfully.")
 
-elif page in["Resources","संसाधन",,"संसाधने"]:  # Use the translated "Resources" label
+elif page in["Resources","संसाधन","संसाधने"]:  # Use the translated "Resources" label
     resource_selection = st.selectbox("Select a resource", ["Nath Bhajan", "Articles", "Books"])
     if resource_selection == "Videos":
         header = "Resources - Videos"
