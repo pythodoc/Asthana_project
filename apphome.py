@@ -196,7 +196,7 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     content = """
         ॐ shiv goraksha yogi dhunaa kuti
         
-        1. Nath Seva
+            1. Nath Seva
         2. Gou Raksha
         3. Educational Help for Needy Children
         4. Dharma Raksha
