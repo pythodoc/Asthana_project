@@ -6,4 +6,3 @@ gspread
 oauth2client
 streamlit_player
 translate
-libretranslate
