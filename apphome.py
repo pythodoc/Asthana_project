@@ -195,6 +195,7 @@ elif page in ["About", "हमारे बारे में", "आमच्�
     #st.markdown(f"[Open Location in Google Maps]({maps_link})")
     content = """
         ॐ shiv goraksha yogi dhunaa kuti
+        
         1. Nath Seva
         2. Gou Raksha
         3. Educational Help for Needy Children
