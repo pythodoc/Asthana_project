@@ -186,9 +186,9 @@ function showSlides() {
     with col4:
         st.image('dadaguru.PNG', use_column_width=True)
 # Handle dropdown selection separately
-elif page == "Resources":
-    resource_selection = st.selectbox("Select a resource", ["Videos", "Articles", "Books"])
-    page = resource_selection  # Override page with selected resource
+#elif page in ["Resources","संसाधन","संसाधने"]:
+    #resource_selection = st.selectbox("Select a resource", ["Bhakti Geet", "Articles", "Books"])
+    #page = resource_selection  # Override page with selected resource
 elif page in ["About", "हमारे बारे में", "आमच्याबद्दल"]:
     #header = "ॐ शिव गोरक्ष योगी अस्थाना.(आटगांव)"
     #maps_link = "https://maps.app.goo.gl/2popDrBbygVPard36"
@@ -327,7 +327,7 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
         else:
             st.success(f"Thank you, {name}! Your form has been submitted successfully.")
 
-elif page == "संसाधन" or page=="Resources":  # Use the translated "Resources" label
+elif page in["Resources","संसाधन",,"संसाधने"]:  # Use the translated "Resources" label
     resource_selection = st.selectbox("Select a resource", ["Nath Bhajan", "Articles", "Books"])
     if resource_selection == "Videos":
         header = "Resources - Videos"
