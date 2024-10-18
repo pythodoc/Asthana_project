@@ -291,7 +291,7 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
     """
     
     # Translated title
-    translated_title = translate_text(title, lang_tgt[selected_lang])
+    translated_title = translate_text(title)
     st.title(translated_title)
 
     # Registration form fields
