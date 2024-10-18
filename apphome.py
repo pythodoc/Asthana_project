@@ -275,8 +275,8 @@ As there are twelve Panth as follows in above image
     # Display the image using st.markdown
     st.markdown(f'<img src="{image_url}" alt="Image" style="width:100%;"/>', unsafe_allow_html=True)
     #st.markdown(r'C:\Users\Admin\Desktop\Asthana Proj\all_panth1.jpg')
-    translated_header = translate_text(header, lang_tgt[selected_lang])
-    translated_content = translate_text(content, lang_tgt[selected_lang])
+    translated_header = translate_text(header)
+    translated_content = translate_text(content)
     st.header(translated_header)
     st.write(translated_content)
 elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
