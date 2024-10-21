@@ -1,5 +1,8 @@
 import streamlit as st
 from translate import Translator
+import requests
+import json
+import base64
 import pandas as pd
 from streamlit_player import st_player
 import streamlit.components.v1 as components
