@@ -27,7 +27,7 @@ st.sidebar.image(sidebar_logo_path, width=200)  # Adjust width as needed
 # Define translations for navigation items
 nav_translations = {
     'Home': {'hi': 'होम', 'mr': 'होम'},
-    'Documentation': {'hi': 'दस्तावेज़', 'mr': 'दस्तावेज'},
+    'Gorakh Vani': {'hi': 'गोरखवाणी', 'mr': 'गोरखवाणी'},
     'Media Coverage': {'hi': 'मीडिया कव्हरेज', 'mr': 'मीडिया कव्हरेज'},
     'Nath Sampraday': {'hi': 'नाथ समुदाय', 'mr': 'नाथ संप्रदाय'},
     'About': {'hi': 'हमारे बारे में', 'mr': 'आमच्याबद्दल'},
@@ -234,15 +234,31 @@ elif page in ["Contact", "संपर्क"]:
     st.write(translated_content)
     df=pd.read_csv("registration_data.csv")   
     st.write(df)
-elif page in ["Documentation", "दस्तावेज़","दस्तावेज़"]:
-    header = "Documentation"
+elif page in ['Gorakh Vani', 'गोरखवाणी', 'गोरखवाणी']:
+    header = "Gorakh Vani"
+
     content = """
-        Here, you can provide detailed documentation on how to use the site or service.
+
+**सति सति बोले गोरख राणा
+तीनि चरन का संग निवारी सकता बूझा कारण॥**
+
+गोरखनाथ अब यह अनुभव सिद्ध मन्त्र कहत हैं, कि तीन तरी (तीनों त्रस्त्र), जागरण आदि छः चार तेज जो कर्मपद में जीवन धारक होत, 
+सो अयोध्याधिराज संयम के नियम विवर्ण बलह, क्योंकि वे जीवन हेतना-हौसा की पीड़िता होने के कारण हरण कर सकते हैं, 
+अर्थात वे निश्चित विवर्णन-प्रभावी होते हैं।
+
+**कहि न सोहै सूरतिन समयलब्ध के साधिया
+जब तक करकट लगावैति काली हठी हारिया**
+
+रति का संग समयलभाद के द्वारा 'गुरुचरण' मार्ग उच्चारित होता है। यह निर्मलता है कि समाज में, अनुभवित (शक्ति), 
+संवेदनशीलता और संबंधों की सूझ होती है। यही सत्य है कि अज्ञानता के ग्रहण से हठियों में निराशा का उद्भव होता है, अकारण में हार का परिणाम और अंततः रति।
+
+संपूर्ण शरीर के साथ सूरतिन में सत्य के मार्ग में चित्त स्थिरता और विशुद्धता के नियमों के अंतर्गत केवल वही सजीव होता है, 
+जो हठ से निजात पाकर संयम, अति संयम के विशेष ज्ञान को प्राप्त कर सकता है। विवेक और जीवन की आध्यात्मिक सिद्धि में चित की स्थिरता और सन्तुलन जीवंत रहता है।
     """
     translated_header = translate_text(header)
-    translated_content = translate_text(content)
+    # translated_content = translate_text(content)
     st.header(translated_header)
-    st.write(translated_content)
+    st.write(content)
 elif page in ["Media Coverage", "मीडिया कव्हरेज", "मीडिया कव्हरेज"]:
     header = "Media Coverage"
     content = """
