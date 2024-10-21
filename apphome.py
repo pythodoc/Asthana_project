@@ -325,6 +325,11 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
         elif not agree:
             st.error(translate_text("For registration, please accept the terms and conditions."))
         else:
+            new_data = pd.DataFrame(
+                {"Name": [name], "Email": [email], "Phone": [phone], "Address": [address], "Gender": [gender],
+                 "Age": [age]})
+            df = pd.concat([df, new_data], ignore_index=True)
+
             st.success(f"Thank you, {name}! Your form has been submitted successfully.")
 
 elif page in["Resources","संसाधन","संसाधने"]:  # Use the translated "Resources" label
