@@ -329,7 +329,7 @@ elif page in ['Registration', "पंजीकरण", "नोंदणी"]:
                 {"Name": [name], "Email": [email], "Phone": [phone], "Address": [address], "Gender": [gender],
                  "Age": [age]})
             df = pd.concat([df, new_data], ignore_index=True)
-
+            df.to_csv(file_path, index=False)
             st.success(f"Thank you, {name}! Your form has been submitted successfully.")
 
 elif page in["Resources","संसाधन","संसाधने"]:  # Use the translated "Resources" label
