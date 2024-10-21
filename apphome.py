@@ -229,7 +229,7 @@ elif page in ["Contact", "संपर्क"]:
     translated_content = translate_text(content)
     st.header(translated_header)
     st.write(translated_content)
-    df=pd.read_csv("all_data.csv")   
+    df=pd.read_csv("registration_data.csv")   
     st.write(df)
 elif page in ["Documentation", "दस्तावेज़","दस्तावेज़"]:
     header = "Documentation"
