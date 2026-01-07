@@ -1,0 +1,543 @@
+import dearpygui.dearpygui as dpg
+from greeksoft import GreekAPI
+import pandas as pd
+import os
+import threading
+from datetime import datetime
+import atexit
+
+api = None
+contract_data = None
+selected_contract = None
+table_parent = "table_container"
+
+import time
+
+# Delete cache on exit
+atexit.register(lambda: os.path.exists("contract_cache.parquet") and os.remove("contract_cache.parquet"))
+
+# --------------------------------------------------------------
+# Build 4 fixed filters (ExchangeSegment, StrikePrice, Expiry, OptionType)
+# --------------------------------------------------------------
+def build_fixed_filters(df):
+
+    dpg.delete_item("filter_panel", children_only=True)
+
+    # Create dropdowns for required columns
+    def make_combo(col_name):
+        # print(df.head().to_string())
+        items = ["All"] + sorted(df[col_name].dropna().astype(str).unique().tolist())
+        return dpg.add_combo(label=col_name, items=items, default_value="All", width=300, parent="filter_panel", callback=apply_fixed_filters)
+
+    global seg_wid, strike_wid, expiry_wid, opttype_wid
+
+    seg_wid = make_combo("ExchangeSegMent")
+    strike_wid = make_combo("StrikePrice")
+    expiry_wid = make_combo("ExpiryDate")
+    opttype_wid = make_combo("OptionType")
+
+
+# --------------------------------------------------------------
+# Apply fixed filters
+# --------------------------------------------------------------
+def apply_fixed_filters(sender, app_data):
+    global contract_data
+
+    df = contract_data.copy()
+
+    seg = dpg.get_value(seg_wid)
+    strike = dpg.get_value(strike_wid)
+    expiry = dpg.get_value(expiry_wid)
+    opttype = dpg.get_value(opttype_wid)
+
+    # Apply filters only if not "All"
+    if seg != "All":
+        df = df[df["ExchangeSegMent"].astype(str) == seg]
+
+    if strike != "All":
+        df = df[df["StrikePrice"].astype(str) == strike]
+
+    if expiry != "All":
+        df = df[df["ExpiryDate"].astype(str) == expiry]
+
+    if opttype != "All":
+        df = df[df["OptionType"].astype(str) == opttype]
+
+    update_contract_table(df)
+
+
+# --------------------------------------------------------------
+# Update contract table
+# --------------------------------------------------------------
+def update_contract_table(df):
+    dpg.delete_item(table_parent, children_only=True)
+
+    if df.empty:
+        dpg.add_text("No matching contracts", parent=table_parent)
+        return
+
+    cols = ["Select"] + list(df.columns)
+
+    with dpg.table(header_row=True, parent=table_parent, borders_innerH=True, borders_innerV=True,
+                   policy=dpg.mvTable_SizingStretchProp):
+
+        for col in cols:
+            dpg.add_table_column(label=col, no_resize=False)
+
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            with dpg.table_row():
+                dpg.add_checkbox(callback=contract_select_callback,
+                                 user_data=row_dict)
+
+                for col in df.columns:
+                    dpg.add_text(str(row[col]))
+
+
+# --------------------------------------------------------------
+# Contract selection (store the GreekToken)
+# --------------------------------------------------------------
+def contract_select_callback(sender, app_data, row_dict):
+    global selected_contract
+    if app_data:  # checked
+        selected_contract = row_dict
+
+        token = row_dict.get("GreekToken")
+        sym = row_dict.get("TradingSymbol", "")
+
+        dpg.set_value("selected_info", f"Selected: {sym} | Token: {token}")
+        dpg.set_value("status_text", "Ready to start WebSocket.")
+    else:  # unchecked
+        selected_contract = None
+        dpg.set_value("selected_info", "")
+        dpg.set_value("status_text", "Select a contract")
+
+
+# --------------------------------------------------------------
+# Login handler
+# --------------------------------------------------------------
+def login_callback(sender, app_data):
+    global api, contract_data
+
+    user = dpg.get_value("inp_user")
+    s_pwd = dpg.get_value("inp_spwd")
+    pwd = dpg.get_value("inp_pwd")
+    procli = dpg.get_value("inp_procli")
+    ac_no = dpg.get_value("inp_acno")
+    rest_ip = dpg.get_value("restip")
+
+    try:
+        api = GreekAPI(user=user, s_pwd=s_pwd, pwd=pwd, procli=procli, ac_no=ac_no,
+                       is_secure=False, is_base_64=True,
+                       rest_ip=rest_ip, rest_port="3333")
+    except Exception as e:
+        dpg.set_value("status_text", f"Login failed: {str(e)}")
+        return
+
+    dpg.delete_item("login_popup")
+
+    # Load or fetch contract data
+    try:
+        if os.path.exists("contract_cache.parquet"):
+            contract_data = pd.read_parquet("contract_cache.parquet")
+            dpg.set_value("status_text", "Loaded contract cache")
+        else:
+            contract_data = pd.DataFrame(api.get_contract_data())
+            contract_data.to_parquet("contract_cache.parquet")
+            dpg.set_value("status_text", "Contract data fetched & cached")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to fetch contract data: {str(e)}")
+        return
+
+    build_fixed_filters(contract_data)
+    update_contract_table(contract_data)
+
+
+# --------------------------------------------------------------
+# Start WebSocket
+# --------------------------------------------------------------
+def start_stream_callback(sender, app_data):
+    if selected_contract is None:
+        dpg.set_value("status_text", "Select a contract first!")
+        return
+
+    token = selected_contract.get("GreekToken")
+    if not token:
+        dpg.set_value("status_text", "Error: No Token found!")
+        return
+
+    dpg.delete_item("ws_output", children_only=True)
+    threading.Thread(target=run_ws, args=([token],), daemon=True).start()
+    dpg.set_value("status_text", f"WebSocket started for token {token}")
+
+
+def run_ws(token_list):
+    api.start_apollo(token_list, req_data="allresp")
+    for data in api.data_stream():
+        dpg.add_text(str(data), parent="ws_output")
+
+
+# --------------------------------------------------------------
+# Load Portfolio
+# --------------------------------------------------------------
+def load_portfolio_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    dpg.delete_item("portfolio_window", children_only=True)
+
+    try:
+        # Net positions
+        net_pos = api.Net_position_Detailed()
+        if net_pos:
+            dpg.add_text("Net Positions:", parent="portfolio_window")
+            with dpg.table(header_row=True, parent="portfolio_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(net_pos[0].keys()) if net_pos else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in net_pos:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+
+        # Holdings
+        holdings = api.get_holding_details()
+        if holdings:
+            dpg.add_separator(parent="portfolio_window")
+            dpg.add_text("Holdings:", parent="portfolio_window")
+            with dpg.table(header_row=True, parent="portfolio_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(holdings[0].keys()) if holdings else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in holdings:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+
+        # Margins
+        margins = api.get_margin_details()
+        if margins:
+            dpg.add_separator(parent="portfolio_window")
+            dpg.add_text("Margins:", parent="portfolio_window")
+            with dpg.table(header_row=True, parent="portfolio_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(margins[0].keys()) if margins else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in margins:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+
+        dpg.set_value("status_text", "Portfolio loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to load portfolio: {str(e)}")
+
+# --------------------------------------------------------------
+# Place Order
+# --------------------------------------------------------------
+def place_order_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    token = dpg.get_value("ord_token")
+    symbol = dpg.get_value("ord_symbol")
+    lot = dpg.get_value("ord_lot")
+    qty = dpg.get_value("ord_qty")
+    price = dpg.get_value("ord_price")
+    buysell = dpg.get_value("ord_buysell").split()[0]
+    ordtype = dpg.get_value("ord_type").split()[0]
+    trigprice = dpg.get_value("ord_trigprice")
+    exchange = dpg.get_value("ord_exchange")
+    validity = dpg.get_value("ord_validity").split()[0]
+    strategy = dpg.get_value("ord_strategy")
+
+    try:
+        resp = api.place_order(token, symbol, lot, qty, price, buysell, ordtype, trigprice, exchange, validity, strategy)
+        dpg.set_value("order_response", f"Order placed: {resp}")
+        dpg.set_value("status_text", "Order placed")
+    except Exception as e:
+        dpg.set_value("order_response", f"Error: {str(e)}")
+        dpg.set_value("status_text", f"Order failed: {str(e)}")
+
+# --------------------------------------------------------------
+# Load Order Book
+# --------------------------------------------------------------
+def load_orderbook_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    dpg.set_value("status_text", "Loading order book...")
+    dpg.delete_item("orderbook_window", children_only=True)
+
+    try:
+        orders = api.Orderbook_All()
+        if orders:
+            with dpg.table(header_row=True, parent="orderbook_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(orders[0].keys()) if orders else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=400)
+                for row in orders:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+        dpg.set_value("status_text", "Order book loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to load order book: {str(e)}")
+
+# --------------------------------------------------------------
+# Load Pending Orders
+# --------------------------------------------------------------
+def load_pending_orders_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    dpg.set_value("status_text", "Loading pending orders...")
+    dpg.delete_item("pending_orders_window", children_only=True)
+
+    try:
+        orders = api.all_pending_order()
+        if orders:
+            with dpg.table(header_row=True, parent="pending_orders_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(orders[0].keys()) if orders else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in orders:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+        dpg.set_value("status_text", "Pending orders loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to load pending orders: {str(e)}")
+
+# --------------------------------------------------------------
+# Load Chart
+# --------------------------------------------------------------
+def load_chart_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    token = dpg.get_value("chart_token")
+    date = dpg.get_value("chart_date")
+    interval = int(dpg.get_value("chart_interval") or 1)
+    if not date:
+        date = datetime.now().strftime('%Y%m%d')
+
+    try:
+        ohlc = api.get_ohlc_data(token, date, interval)
+        df = pd.DataFrame(ohlc)
+        if df.empty:
+            dpg.set_value("status_text", "No chart data")
+            return
+
+        df['datetime'] = pd.to_datetime(df['timestamp'], unit='s')
+        x = list(range(len(df)))
+        y = df['Close'].tolist()
+
+        dpg.delete_item("y_axis", children_only=True)
+        dpg.add_line_series(x, y, label="Close Price", parent="y_axis")
+
+        dpg.set_value("status_text", "Chart loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Chart failed: {str(e)}")
+
+# --------------------------------------------------------------
+# Load Account
+# --------------------------------------------------------------
+def load_account_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    dpg.set_value("status_text", "Loading account info...")
+    dpg.delete_item("account_window", children_only=True)
+
+    try:
+        margins = api.get_margin_details()
+        if margins:
+            with dpg.table(header_row=True, parent="account_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(margins[0].keys()) if margins else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in margins:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+        dpg.set_value("status_text", "Account info loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to load account: {str(e)}")
+
+# --------------------------------------------------------------
+# Load Net Position
+# --------------------------------------------------------------
+def load_net_position_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    dpg.set_value("status_text", "Loading net position...")
+    dpg.delete_item("net_position_window", children_only=True)
+
+    try:
+        net_pos = api.Net_Position_Details_strategywise()
+        if net_pos:
+            with dpg.table(header_row=True, parent="net_position_window", borders_innerH=True, borders_innerV=True, policy=dpg.mvTable_SizingStretchProp):
+                cols = list(net_pos[0].keys()) if net_pos else []
+                for col in cols:
+                    dpg.add_table_column(label=col, no_resize=False, width=120)
+                for row in net_pos:
+                    with dpg.table_row():
+                        for col in cols:
+                            dpg.add_text(str(row.get(col, "")))
+        dpg.set_value("status_text", "Net position loaded")
+    except Exception as e:
+        dpg.set_value("status_text", f"Failed to load net position: {str(e)}")
+
+# --------------------------------------------------------------
+# UI SETUP
+# --------------------------------------------------------------
+# Cancel Order
+# --------------------------------------------------------------
+def cancel_order_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    ord_id = dpg.get_value("ord_id")
+    try:
+        api.cancel_order(ord_id)
+        dpg.set_value("manage_response", f"Order {ord_id} cancelled")
+        dpg.set_value("status_text", "Order cancelled")
+    except Exception as e:
+        dpg.set_value("manage_response", f"Cancel failed: {str(e)}")
+        dpg.set_value("status_text", f"Cancel failed: {str(e)}")
+
+# --------------------------------------------------------------
+# Modify Order
+# --------------------------------------------------------------
+def modify_order_callback(sender, app_data):
+    global api
+    if api is None:
+        dpg.set_value("status_text", "Login first!")
+        return
+
+    ord_id = dpg.get_value("ord_id")
+    price = dpg.get_value("mod_price")
+    qty = dpg.get_value("mod_qty")
+    ordtype = dpg.get_value("mod_type").split()[0]
+
+    try:
+        resp = api.modify_order(price, qty, ordtype, ord_id)
+        dpg.set_value("manage_response", f"Order {ord_id} modified: {resp}")
+        dpg.set_value("status_text", "Order modified")
+    except Exception as e:
+        dpg.set_value("manage_response", f"Modify failed: {str(e)}")
+        dpg.set_value("status_text", f"Modify failed: {str(e)}")
+
+# --------------------------------------------------------------
+# UI SETUP
+# --------------------------------------------------------------
+dpg.create_context()
+dpg.create_viewport(title="GreekAPI Filter App", width=1300, height=800)
+
+with dpg.window(label="Trading App", width=1300, height=800):
+    dpg.add_text("Status:", tag="status_text")
+
+    with dpg.tab_bar():
+        with dpg.tab(label="Contracts"):
+            dpg.add_separator()
+            dpg.add_text("Filters:")
+            dpg.add_child_window(tag="filter_panel", width=600, height=200)
+
+            dpg.add_separator()
+            dpg.add_text("Matching Contracts:")
+            dpg.add_child_window(tag=table_parent, width=1200, height=350, no_scrollbar=False, horizontal_scrollbar=True)
+
+            dpg.add_text("", tag="selected_info")
+            dpg.add_button(label="Start WebSocket", callback=start_stream_callback)
+
+            dpg.add_separator()
+            dpg.add_text("WebSocket Output:")
+            dpg.add_child_window(tag="ws_output", width=1200, height=200, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="Portfolio"):
+            dpg.add_button(label="Load Portfolio", callback=load_portfolio_callback)
+            dpg.add_child_window(tag="portfolio_window", width=1200, height=400, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="Orders"):
+            dpg.add_input_text(label="Token", tag="ord_token")
+            dpg.add_input_text(label="Symbol", tag="ord_symbol")
+            dpg.add_input_text(label="Lot", tag="ord_lot", default_value="1")
+            dpg.add_input_text(label="Qty", tag="ord_qty")
+            dpg.add_input_text(label="Price", tag="ord_price", default_value="0")
+            dpg.add_combo(label="Buy/Sell", items=["1 (Buy)", "2 (Sell)"], default_value="1 (Buy)", tag="ord_buysell")
+            dpg.add_combo(label="Order Type", items=["1 (Limit)", "2 (Market)", "3 (SL)", "4 (SL-M)"], default_value="2 (Market)", tag="ord_type")
+            dpg.add_input_text(label="Trigger Price", tag="ord_trigprice", default_value="0")
+            dpg.add_combo(label="Exchange", items=["NSE", "NSEFO"], default_value="NSEFO", tag="ord_exchange")
+            dpg.add_combo(label="Validity", items=["0 (Day)", "1 (IOC)", "2 (GTD)"], default_value="0 (Day)", tag="ord_validity")
+            dpg.add_input_text(label="Strategy Name", tag="ord_strategy", default_value="Manual")
+            dpg.add_button(label="Place Order", callback=place_order_callback)
+            dpg.add_text("", tag="order_response")
+            dpg.add_separator()
+            dpg.add_input_text(label="Order ID", tag="ord_id")
+            dpg.add_button(label="Cancel Order", callback=cancel_order_callback)
+            dpg.add_input_text(label="New Price", tag="mod_price")
+            dpg.add_input_text(label="New Qty", tag="mod_qty")
+            dpg.add_combo(label="New Order Type", items=["1 (Limit)", "2 (Market)"], default_value="2 (Market)", tag="mod_type")
+            dpg.add_button(label="Modify Order", callback=modify_order_callback)
+            dpg.add_text("", tag="manage_response")
+
+        with dpg.tab(label="Order Book"):
+            dpg.add_button(label="Load Order Book", callback=load_orderbook_callback)
+            dpg.add_child_window(tag="orderbook_window", width=1200, height=400, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="Pending Orders"):
+            dpg.add_button(label="Load Pending Orders", callback=load_pending_orders_callback)
+            dpg.add_child_window(tag="pending_orders_window", width=1200, height=400, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="Charts"):
+            dpg.add_input_text(label="Token", tag="chart_token", default_value="102049508")
+            dpg.add_input_text(label="Date (YYYYMMDD)", tag="chart_date")
+            dpg.add_input_text(label="Interval (minutes)", tag="chart_interval", default_value="1")
+            dpg.add_button(label="Load Chart", callback=load_chart_callback)
+            with dpg.plot(label="Price Chart", height=400, width=1200, tag="price_plot"):
+                dpg.add_plot_axis(dpg.mvXAxis, label="Time", tag="x_axis")
+                dpg.add_plot_axis(dpg.mvYAxis, label="Price", tag="y_axis")
+
+        with dpg.tab(label="Account"):
+            dpg.add_button(label="Load Account Info", callback=load_account_callback)
+            dpg.add_child_window(tag="account_window", width=1200, height=400, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="Net Position"):
+            dpg.add_button(label="Load Net Position", callback=load_net_position_callback)
+            dpg.add_child_window(tag="net_position_window", width=1200, height=400, no_scrollbar=False, horizontal_scrollbar=True)
+
+        with dpg.tab(label="News"):
+            dpg.add_text("News feed here")
+
+with dpg.window(label="Login", modal=True, tag="login_popup", pos=[350, 200]):
+    dpg.add_input_text(label="User", tag="inp_user", default_value="")
+    dpg.add_input_text(label="S Password", tag="inp_spwd", default_value="greek@123",password=True)
+    dpg.add_input_text(label="Password", tag="inp_pwd", password=True)
+    dpg.add_input_text(label="ProCli", tag="inp_procli", default_value="2")
+    dpg.add_input_text(label="AC No", tag="inp_acno", default_value="")
+    dpg.add_input_text(label="Rest_ip", tag="restip", default_value="192.168.207.18")
+
+    dpg.add_button(label="Login", callback=login_callback)
+
+dpg.setup_dearpygui()
+dpg.show_viewport()
+dpg.start_dearpygui()
+dpg.destroy_context()
